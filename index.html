@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #08090f;
+      background: #000;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -34,91 +34,84 @@
       align-items: center;
       overflow: hidden;
     }
+
+    /* Unity Canvas - Starts at opacity: 0 to guarantee NO "Made with Unity" flash */
     #unity-canvas {
       width: 100% !important;
       height: 100% !important;
       display: block;
       outline: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
     }
 
-    /* Branded Loading Splash Screen (Hides "Made with Unity" and dead black screen) */
+    /* Thumbnail Cover & Loading Screen */
     #game-splash-overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle at center, #181d2e 0%, #08090f 100%);
+      background-color: #0b0c14;
+      background-image: url('thumbnail.png');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-end;
       align-items: center;
       z-index: 100;
       transition: opacity 0.6s ease, visibility 0.6s ease;
     }
-    .splash-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 24px;
-      max-width: 420px;
-      width: 88%;
+
+    /* Subtle dark gradient overlay over thumbnail for contrast */
+    #game-splash-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 80%, rgba(0,0,0,0.92) 100%);
+      pointer-events: none;
     }
-    .game-badge {
-      background: linear-gradient(135deg, #ff9800, #ff5722);
-      color: #fff;
-      font-weight: 800;
-      font-size: 11px;
-      letter-spacing: 2px;
-      padding: 4px 14px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 14px rgba(255, 87, 34, 0.4);
-    }
-    .splash-title {
-      color: #ffffff;
-      font-size: 32px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      line-height: 1.15;
-      margin-bottom: 24px;
-      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-    }
-    .splash-title span {
-      background: linear-gradient(135deg, #4fc3f7, #0288d1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .loader-box {
+
+    .splash-bottom-bar {
+      position: relative;
+      z-index: 2;
       width: 100%;
+      padding: 20px 24px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
+
+    .loader-status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    }
+
     .loader-track {
       width: 100%;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 6px;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(4px);
     }
+
     .loader-fill {
       width: 0%;
       height: 100%;
       background: linear-gradient(90deg, #00d2ff, #0072ff);
-      border-radius: 10px;
+      border-radius: 6px;
       transition: width 0.2s ease-out;
-      box-shadow: 0 0 14px rgba(0, 210, 255, 0.8);
-    }
-    .loader-status {
-      display: flex;
-      justify-content: space-between;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 13px;
-      font-weight: 500;
+      box-shadow: 0 0 12px rgba(0, 210, 255, 0.9);
     }
 
     /* PC Controls Floating Pill HUD (Desktop only, hidden on mobile) */
@@ -155,7 +148,32 @@
       font-size: 12px;
     }
 
-    /* Mobile: Completely clean fullscreen */
+    /* Audio Toggle Button (Top Right) */
+    #sound-toggle {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 20;
+      background: rgba(15, 17, 28, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 17px;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    #sound-toggle:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Mobile: 100% Fullscreen, clean layout */
     @media (max-width: 599px), (max-height: 499px), (pointer: coarse) {
       .pc-controls-guide {
         display: none !important;
@@ -167,20 +185,15 @@
   <div id="game-container">
     <canvas id="unity-canvas" tabindex="-1"></canvas>
 
-    <!-- Custom Splash / Loading Screen -->
+    <!-- Thumbnail Cover / Splash Screen (Hides Unity splash screen 100%) -->
     <div id="game-splash-overlay">
-      <div class="splash-content">
-        <div class="game-badge">3D RUNNER</div>
-        <h1 class="splash-title">COUNT CONTROL<br><span>LEGENDS</span></h1>
-
-        <div class="loader-box">
-          <div class="loader-track">
-            <div id="splash-bar" class="loader-fill"></div>
-          </div>
-          <div class="loader-status">
-            <span id="splash-status-text">Loading 3D world...</span>
-            <span id="splash-percent">0%</span>
-          </div>
+      <div class="splash-bottom-bar">
+        <div class="loader-status-row">
+          <span id="splash-status-text">Loading...</span>
+          <span id="splash-percent">0%</span>
+        </div>
+        <div class="loader-track">
+          <div id="splash-bar" class="loader-fill"></div>
         </div>
       </div>
     </div>
@@ -193,10 +206,13 @@
       <span>•</span>
       <span><span class="pc-key">Space</span> Tap to Start</span>
     </div>
+
+    <!-- Sound Toggle Button -->
+    <button id="sound-toggle" title="Toggle Sound">🔊</button>
   </div>
 
-  <!-- Background Music Player -->
-  <audio id="bgm-player" loop preload="auto"></audio>
+  <!-- Background Music Player (Plays amin.mp3 on loop) -->
+  <audio id="bgm-player" src="amin.mp3" loop preload="auto"></audio>
 
   <!-- Complete Zero-Ad Poki SDK & PokiBridge Mock -->
   <script>
@@ -204,17 +220,41 @@
     window.pokiAdBlock = false;
     window.pokiBridge = null;
 
+    let unityGameInstance = null;
+    let isGameRevealed = false;
+
+    function revealGame() {
+      if (isGameRevealed) return;
+      isGameRevealed = true;
+
+      const canvas = document.querySelector("#unity-canvas");
+      const overlay = document.querySelector("#game-splash-overlay");
+
+      console.log('[Runner] Revealing game directly on 3D scene!');
+      if (canvas) {
+        canvas.style.opacity = "1";
+        canvas.style.pointerEvents = "auto";
+      }
+
+      if (overlay) {
+        overlay.style.opacity = "0";
+        setTimeout(() => {
+          overlay.style.display = "none";
+        }, 600);
+      }
+
+      // Try autoplaying background music
+      startBgm();
+    }
+
     window.initPokiBridge = function(name) {
       console.log('[PokiBridge] initPokiBridge called for:', name);
       window.pokiBridge = name;
       function notifyReady() {
         if (window.unityGame) {
-          console.log('[PokiBridge] Notifying ready to:', name);
           try {
             window.unityGame.SendMessage(name, "ready");
-          } catch(e) {
-            console.error('[PokiBridge] Error sending ready:', e);
-          }
+          } catch(e) {}
         } else {
           setTimeout(notifyReady, 50);
         }
@@ -223,31 +263,31 @@
     };
 
     window.commercialBreak = function() {
-      console.log('[PokiBridge] commercialBreak() -> immediately resolving');
       if (window.unityGame && window.pokiBridge) {
-        try {
-          window.unityGame.SendMessage(window.pokiBridge, "commercialBreakCompleted");
-        } catch(e) {}
+        try { window.unityGame.SendMessage(window.pokiBridge, "commercialBreakCompleted"); } catch(e) {}
       }
       return Promise.resolve();
     };
 
     window.rewardedBreak = function(options) {
-      console.log('[PokiBridge] rewardedBreak() -> granting reward instantly');
       if (window.unityGame && window.pokiBridge) {
-        try {
-          window.unityGame.SendMessage(window.pokiBridge, "rewardedBreakCompleted", "true");
-        } catch(e) {}
+        try { window.unityGame.SendMessage(window.pokiBridge, "rewardedBreakCompleted", "true"); } catch(e) {}
       }
       return Promise.resolve(true);
     };
 
     window.PokiSDK = {
       init: function() { return Promise.resolve(); },
-      gameplayStart: function() { console.log('[PokiSDK] gameplayStart'); },
+      gameplayStart: function() {
+        console.log('[PokiSDK] gameplayStart fired');
+        revealGame();
+      },
       gameplayStop: function() { console.log('[PokiSDK] gameplayStop'); },
       gameLoadingStart: function() {},
-      gameLoadingFinished: function() {},
+      gameLoadingFinished: function() {
+        console.log('[PokiSDK] gameLoadingFinished fired');
+        revealGame();
+      },
       commercialBreak: window.commercialBreak,
       rewardedBreak: window.rewardedBreak,
       displayAd: function() {},
@@ -261,30 +301,43 @@
     };
   </script>
 
-  <!-- Background Music Helper -->
+  <!-- Background Music Controller -->
   <script>
-    window.playBgm = function(url) {
-      const audio = document.getElementById('bgm-player');
-      if (audio) {
-        if (url) audio.src = url;
-        audio.volume = 0.5;
-        audio.play().catch(e => console.log('[BGM] Waiting for user interaction to autoplay audio'));
-      }
-    };
-    window.setBgmVolume = function(vol) {
-      const audio = document.getElementById('bgm-player');
-      if (audio) audio.volume = vol;
-    };
+    const bgm = document.getElementById('bgm-player');
+    const soundToggle = document.getElementById('sound-toggle');
+    let isMuted = false;
 
-    // User gesture unlock for audio
-    function userAudioUnlock() {
-      const audio = document.getElementById('bgm-player');
-      if (audio && audio.src && audio.paused) {
-        audio.play().catch(e => {});
+    function startBgm() {
+      if (bgm && !isMuted) {
+        bgm.volume = 0.55;
+        bgm.play().catch(e => {
+          // Autoplay policy waiting for user click
+          console.log('[BGM] Waiting for first user click to play audio');
+        });
       }
     }
-    window.addEventListener('pointerdown', userAudioUnlock, { once: true });
-    window.addEventListener('keydown', userAudioUnlock, { once: true });
+
+    soundToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!bgm) return;
+      isMuted = !isMuted;
+      if (isMuted) {
+        bgm.pause();
+        soundToggle.textContent = '🔇';
+      } else {
+        bgm.play().catch(e => {});
+        soundToggle.textContent = '🔊';
+      }
+    });
+
+    // Unlock audio on any first user tap / key
+    function userUnlockAudio() {
+      if (bgm && !isMuted && bgm.paused) {
+        bgm.play().catch(e => {});
+      }
+    }
+    window.addEventListener('pointerdown', userUnlockAudio, { once: true });
+    window.addEventListener('keydown', userUnlockAudio, { once: true });
   </script>
 
   <!-- Unity WebGL Loader -->
@@ -292,7 +345,6 @@
 
   <script>
     const canvas = document.querySelector("#unity-canvas");
-    const splashOverlay = document.getElementById("game-splash-overlay");
     const splashBar = document.getElementById("splash-bar");
     const splashPercent = document.getElementById("splash-percent");
     const splashStatus = document.getElementById("splash-status-text");
@@ -309,7 +361,7 @@
     checkDeviceView();
 
     const buildUrl = "Build";
-    // NOTE: We do NOT delete UnityCache so that IndexedDB caches the 28MB build for instant reloads!
+    // NOTE: UnityCache preserves assets in IndexedDB so all future loads are near-instant!
     const config = {
       dataUrl: buildUrl + "/180b03074745078a7fe292b2c22f6060.data.unityweb",
       frameworkUrl: buildUrl + "/2320a17ab13f3e61f4a62a2cc0382528.framework.js.unityweb",
@@ -326,40 +378,32 @@
       if (splashBar) splashBar.style.width = pct + "%";
       if (splashPercent) splashPercent.textContent = pct + "%";
       if (splashStatus) {
-        if (pct < 45) {
-          splashStatus.textContent = "Loading 3D world...";
-        } else if (pct < 90) {
-          splashStatus.textContent = "Compiling game engine...";
+        if (pct < 100) {
+          splashStatus.textContent = "Loading " + pct + "%";
         } else {
-          splashStatus.textContent = "Starting runner...";
+          splashStatus.textContent = "Starting...";
         }
       }
     }).then((unityInstance) => {
       window.unityInstance = unityInstance;
       window.unityGame = unityInstance;
+      unityGameInstance = unityInstance;
 
-      // Ensure progress bar reaches 100%
       if (splashBar) splashBar.style.width = "100%";
       if (splashPercent) splashPercent.textContent = "100%";
-      if (splashStatus) splashStatus.textContent = "Ready!";
+      if (splashStatus) splashStatus.textContent = "Ready";
 
-      // Fade out overlay smoothly after Unity completes its internal canvas initialization
-      // This ensures "Made with Unity" is completely hidden behind the splash overlay!
+      // CRITICAL: Unity engine plays its internal splash screen on canvas for ~2.5 - 3.0 seconds
+      // By keeping canvas opacity at 0 and overlay active for 3400ms, "Made with Unity" is 100% INVISIBLE!
       setTimeout(() => {
-        if (splashOverlay) {
-          splashOverlay.style.opacity = "0";
-          setTimeout(() => {
-            splashOverlay.style.display = "none";
-          }, 600);
-        }
-      }, 700);
+        revealGame();
+      }, 3400);
 
       if (window.pokiBridge) {
         try {
           window.unityGame.SendMessage(window.pokiBridge, "ready");
         } catch(e) {}
       }
-      console.log("Count Control Legends running smoothly!");
     }).catch((message) => {
       console.error("Unity Load Error:", message);
     });
