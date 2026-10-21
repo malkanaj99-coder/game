@@ -35,7 +35,7 @@
       overflow: hidden;
     }
 
-    /* Unity Canvas: Starts completely invisible (opacity 0) to guarantee ZERO "Made with Unity" flash */
+    /* Unity Canvas - Starts at opacity: 0 to guarantee NO "Made with Unity" flash */
     #unity-canvas {
       width: 100% !important;
       height: 100% !important;
@@ -53,28 +53,35 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: #0b0c14;
-      background-image: url('thumbnail.jpg'), url('thumbnail.png');
-      background-position: center 30%;
-      background-repeat: no-repeat;
-      background-size: cover;
+      background: #0b0c14;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       align-items: center;
       z-index: 100;
+      overflow: hidden;
       transition: opacity 0.5s ease, visibility 0.5s ease;
     }
 
+    #splash-bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
     /* Soft bottom vignette gradient for pristine text readability */
-    #game-splash-overlay::after {
-      content: '';
+    .splash-vignette {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      height: 45%;
-      background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.92) 100%);
+      height: 50%;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.95) 100%);
       pointer-events: none;
       z-index: 1;
     }
@@ -97,8 +104,8 @@
       position: relative;
       width: 100%;
       height: 36px;
-      background: rgba(10, 14, 24, 0.75);
-      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      background: rgba(10, 14, 24, 0.78);
+      border: 2.5px solid rgba(255, 255, 255, 0.32);
       border-radius: 24px;
       overflow: hidden;
       display: flex;
@@ -236,6 +243,9 @@
 
     <!-- 4K High-Res Thumbnail Cover + 7-Second Capsule Loading Screen -->
     <div id="game-splash-overlay">
+      <img src="thumbnail.jpg" alt="Mob Control" id="splash-bg-img">
+      <div class="splash-vignette"></div>
+
       <div class="loader-bottom-area">
         <div class="capsule-track">
           <div id="capsule-bar" class="capsule-fill"></div>
@@ -261,7 +271,7 @@
     <button id="sound-toggle" title="Toggle Sound">🔊</button>
   </div>
 
-  <!-- Background Music Player (amin.mp3 in continuous loop) -->
+  <!-- Background Music Player (amin.mp3 in continuous loop, 100% volume) -->
   <audio id="bgm-player" src="amin.mp3" loop preload="auto"></audio>
 
   <!-- Complete Zero-Ad Poki SDK & PokiBridge Mock -->
@@ -270,19 +280,18 @@
     window.pokiAdBlock = false;
     window.pokiBridge = null;
 
-    let isUnityEngineReady = false;
-    let isTimerReady = false;
+    let isUnityReady = false;
+    let isMinTimeElapsed = false;
     let isGameRevealed = false;
 
-    function tryRevealGame() {
+    function revealGame() {
       if (isGameRevealed) return;
-      if (!isUnityEngineReady || !isTimerReady) return;
-
       isGameRevealed = true;
+
       const canvas = document.querySelector("#unity-canvas");
       const overlay = document.querySelector("#game-splash-overlay");
 
-      console.log('[Runner] Revealing game directly on 3D scene after full 7-second cover!');
+      console.log('[Runner] Revealing game directly on 3D scene!');
       if (canvas) {
         canvas.style.opacity = "1";
         canvas.style.pointerEvents = "auto";
@@ -297,6 +306,15 @@
 
       startBgm();
     }
+
+    function checkReady() {
+      if (isUnityReady && isMinTimeElapsed) {
+        revealGame();
+      }
+    }
+
+    // Safety fallback: reveal game after 10s maximum so it CANNOT stay black under any condition
+    setTimeout(revealGame, 10000);
 
     window.initPokiBridge = function(name) {
       window.pokiBridge = name;
@@ -328,15 +346,15 @@
       init: function() { return Promise.resolve(); },
       gameplayStart: function() {
         console.log('[PokiSDK] gameplayStart fired');
-        isUnityEngineReady = true;
-        tryRevealGame();
+        isUnityReady = true;
+        checkReady();
       },
       gameplayStop: function() {},
       gameLoadingStart: function() {},
       gameLoadingFinished: function() {
         console.log('[PokiSDK] gameLoadingFinished fired');
-        isUnityEngineReady = true;
-        tryRevealGame();
+        isUnityReady = true;
+        checkReady();
       },
       commercialBreak: window.commercialBreak,
       rewardedBreak: window.rewardedBreak,
@@ -351,7 +369,7 @@
     };
   </script>
 
-  <!-- Background Music Controller -->
+  <!-- Background Music Controller (100% Volume) -->
   <script>
     const bgm = document.getElementById('bgm-player');
     const soundToggle = document.getElementById('sound-toggle');
@@ -365,7 +383,7 @@
       if (bgm && !isMuted) {
         bgm.volume = 1.0;
         bgm.play().catch(e => {
-          console.log('[BGM] Autoplay waiting for first touch gesture');
+          console.log('[BGM] Waiting for first touch gesture');
         });
       }
     }
@@ -441,31 +459,17 @@
       if (capsulePercent) capsulePercent.textContent = progress + "%";
 
       if (elapsed >= TOTAL_LOAD_MS) {
-        isTimerReady = true;
-        tryRevealGame();
+        isMinTimeElapsed = true;
+        checkReady();
       } else {
         requestAnimationFrame(updateLoadingProgress);
       }
     }
     requestAnimationFrame(updateLoadingProgress);
 
-    // DYNAMIC MOBILE / PC PERFORMANCE OPTIMIZATION
+    // Performance Optimization
     const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 600;
-    const hwCores = navigator.hardwareConcurrency || 4;
-    const devMemory = navigator.deviceMemory || 4;
-
-    let dynamicDPR = window.devicePixelRatio || 1;
-    if (isMobileDevice) {
-      if (devMemory <= 2 || hwCores <= 4) {
-        dynamicDPR = 1.0; // Budget mobile: lock to 1.0 for rock-solid 60 FPS
-      } else if (devMemory <= 4 || hwCores <= 6) {
-        dynamicDPR = 1.25; // Mid-range mobile
-      } else {
-        dynamicDPR = Math.min(dynamicDPR, 1.5); // Flagship mobile: crisp HD
-      }
-    } else {
-      dynamicDPR = Math.min(dynamicDPR, 2.0); // Desktop / PC: full Retina / 4K
-    }
+    let dynamicDPR = Math.min(window.devicePixelRatio || 1, isMobileDevice ? 1.5 : 2.0);
 
     const buildUrl = "Build";
     const config = {
@@ -479,25 +483,33 @@
       devicePixelRatio: dynamicDPR
     };
 
-    createUnityInstance(canvas, config).then((unityInstance) => {
+    // CRITICAL FIX: Pass mandatory 3rd argument (progress callback) so loader.js never throws TypeError
+    createUnityInstance(canvas, config, (progress) => {
+      // Unity download progress
+      if (progress >= 1.0) {
+        // When Unity WebAssembly is compiled, mark engine as ready after brief splash duration
+        setTimeout(() => {
+          isUnityReady = true;
+          checkReady();
+        }, 2200);
+      }
+    }).then((unityInstance) => {
       window.unityInstance = unityInstance;
       window.unityGame = unityInstance;
 
-      // Unity engine takes ~2.5s for internal init & splash
-      // By keeping canvas hidden until the 7s mark, Made with Unity is completely gone!
       setTimeout(() => {
-        isUnityEngineReady = true;
-        tryRevealGame();
-      }, 3000);
+        isUnityReady = true;
+        checkReady();
+      }, 2500);
 
       if (window.pokiBridge) {
         try { window.unityGame.SendMessage(window.pokiBridge, "ready"); } catch(e) {}
       }
     }).catch((message) => {
       console.error("Unity Load Error:", message);
-      // Fallback reveal on error
-      isUnityEngineReady = true;
-      tryRevealGame();
+      // Guarantee game reveals even on error
+      isUnityReady = true;
+      revealGame();
     });
 
     // PC Keyboard Steer Helper: Seamless A/D & Arrow Left/Right to simulated drag
