@@ -357,9 +357,13 @@
     const soundToggle = document.getElementById('sound-toggle');
     let isMuted = false;
 
+    if (bgm) {
+      bgm.volume = 1.0;
+    }
+
     function startBgm() {
       if (bgm && !isMuted) {
-        bgm.volume = 0.55;
+        bgm.volume = 1.0;
         bgm.play().catch(e => {
           console.log('[BGM] Autoplay waiting for first touch gesture');
         });
@@ -374,14 +378,18 @@
         bgm.pause();
         soundToggle.textContent = '🔇';
       } else {
+        bgm.volume = 1.0;
         bgm.play().catch(e => {});
         soundToggle.textContent = '🔊';
       }
     });
 
     function userUnlockAudio() {
-      if (bgm && !isMuted && bgm.paused) {
-        bgm.play().catch(e => {});
+      if (bgm && !isMuted) {
+        bgm.volume = 1.0;
+        if (bgm.paused) {
+          bgm.play().catch(e => {});
+        }
       }
     }
     window.addEventListener('pointerdown', userUnlockAudio, { once: true });
