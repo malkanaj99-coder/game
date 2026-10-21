@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
-  <title>Count Control Legends</title>
+  <title>Mob Control</title>
   <style>
     * {
       box-sizing: border-box;
@@ -35,7 +35,7 @@
       overflow: hidden;
     }
 
-    /* Unity Canvas - Starts at opacity: 0 to guarantee NO "Made with Unity" flash */
+    /* Unity Canvas - Starts at opacity: 0 to guarantee NO "Made with Unity" or empty skybox flash */
     #unity-canvas {
       width: 100% !important;
       height: 100% !important;
@@ -60,7 +60,7 @@
       align-items: center;
       z-index: 100;
       overflow: hidden;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
     }
 
     #splash-bg-img {
@@ -80,8 +80,8 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 50%;
-      background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.95) 100%);
+      height: 52%;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.96) 100%);
       pointer-events: none;
       z-index: 1;
     }
@@ -92,28 +92,28 @@
       z-index: 2;
       width: 100%;
       max-width: 440px;
-      padding: 0 24px 36px 24px;
+      padding: 0 24px 38px 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
     }
 
     /* Capsule Pill Loading Bar */
     .capsule-track {
       position: relative;
       width: 100%;
-      height: 36px;
-      background: rgba(10, 14, 24, 0.78);
-      border: 2.5px solid rgba(255, 255, 255, 0.32);
+      height: 38px;
+      background: rgba(10, 14, 24, 0.82);
+      border: 2.5px solid rgba(255, 255, 255, 0.35);
       border-radius: 24px;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 2px 4px rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8), inset 0 2px 5px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .capsule-fill {
@@ -124,7 +124,7 @@
       width: 0%;
       background: linear-gradient(90deg, #00e676 0%, #00c853 100%);
       border-radius: 20px;
-      box-shadow: 0 0 18px rgba(0, 230, 118, 0.95);
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.95);
       transition: width 0.1s linear;
     }
 
@@ -135,16 +135,15 @@
       font-size: 15px;
       font-weight: 800;
       letter-spacing: 0.5px;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-      font-family: inherit;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
     }
 
     .loader-status-text {
       color: #ffffff;
       font-size: 15px;
       font-weight: 700;
-      letter-spacing: 0.3px;
-      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+      letter-spacing: 0.4px;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
       margin-top: 2px;
     }
 
@@ -153,14 +152,14 @@
       display: flex;
       align-items: center;
       gap: 7px;
-      background: rgba(14, 18, 30, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 18px;
-      padding: 6px 18px;
+      background: rgba(14, 18, 30, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      padding: 7px 20px;
       color: #ffe082;
-      font-size: 12.5px;
+      font-size: 13px;
       font-weight: 600;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
       margin-top: 4px;
       text-align: center;
     }
@@ -179,7 +178,7 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      background: rgba(10, 12, 22, 0.78);
+      background: rgba(10, 12, 22, 0.8);
       backdrop-filter: blur(10px);
       padding: 8px 18px;
       border-radius: 24px;
@@ -201,32 +200,6 @@
       color: #fff;
       font-family: monospace;
       font-size: 12px;
-    }
-
-    /* Sound Toggle Button */
-    #sound-toggle {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      z-index: 20;
-      background: rgba(15, 17, 28, 0.75);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      color: #fff;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 18px;
-      transition: transform 0.15s ease, background 0.15s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-    #sound-toggle:active {
-      transform: scale(0.92);
-      background: rgba(255, 255, 255, 0.2);
     }
 
     /* Mobile: 100% Fullscreen, clean layout */
@@ -251,7 +224,7 @@
           <div id="capsule-bar" class="capsule-fill"></div>
           <span id="capsule-percent" class="capsule-percent">0%</span>
         </div>
-        <div class="loader-status-text">Loading...</div>
+        <div class="loader-status-text" id="loader-status-text">Loading...</div>
         <div class="tip-pill" id="tip-pill">
           💡 <span id="tip-text">Tip: Multiply your mob through Blue gates!</span>
         </div>
@@ -266,12 +239,9 @@
       <span>•</span>
       <span><span class="pc-key">Space</span> Tap to Start</span>
     </div>
-
-    <!-- Sound Toggle Button -->
-    <button id="sound-toggle" title="Toggle Sound">🔊</button>
   </div>
 
-  <!-- Background Music Player (amin.mp3 in continuous loop, 100% volume) -->
+  <!-- Background Music Player (amin.mp3 in continuous loop, 100% volume, NO mute button) -->
   <audio id="bgm-player" src="amin.mp3" loop preload="auto"></audio>
 
   <!-- Complete Zero-Ad Poki SDK & PokiBridge Mock -->
@@ -280,18 +250,25 @@
     window.pokiAdBlock = false;
     window.pokiBridge = null;
 
-    let isUnityReady = false;
-    let isMinTimeElapsed = false;
+    let isGameSceneLoaded = false;
+    let isMinTimerDone = false;
     let isGameRevealed = false;
 
-    function revealGame() {
+    function revealGameNow() {
       if (isGameRevealed) return;
       isGameRevealed = true;
 
       const canvas = document.querySelector("#unity-canvas");
       const overlay = document.querySelector("#game-splash-overlay");
+      const bar = document.getElementById("capsule-bar");
+      const pct = document.getElementById("capsule-percent");
 
-      console.log('[Runner] Revealing game directly on 3D scene!');
+      if (bar) bar.style.width = "100%";
+      if (pct) pct.textContent = "100%";
+
+      console.log('[Runner] Revealing authentic 3D runner directly on gameplay scene!');
+
+      // Smoothly fade in canvas and fade out splash overlay
       if (canvas) {
         canvas.style.opacity = "1";
         canvas.style.pointerEvents = "auto";
@@ -301,23 +278,25 @@
         overlay.style.opacity = "0";
         setTimeout(() => {
           overlay.style.display = "none";
-        }, 500);
+        }, 550);
       }
 
-      startBgm();
+      playBgmAudio();
     }
 
-    function checkReady() {
-      if (isUnityReady && isMinTimeElapsed) {
-        revealGame();
+    function checkReadyToReveal() {
+      if (isGameSceneLoaded && isMinTimerDone) {
+        revealGameNow();
       }
     }
 
-    // Safety fallback: reveal game after 10s maximum so it CANNOT stay black under any condition
-    setTimeout(revealGame, 10000);
-
+    // PokiBridge callback: GameObject in Game.unity awakens and connects
     window.initPokiBridge = function(name) {
+      console.log('[PokiBridge] Game scene loaded and ready! Connected to:', name);
       window.pokiBridge = name;
+      isGameSceneLoaded = true;
+      checkReadyToReveal();
+
       function notifyReady() {
         if (window.unityGame) {
           try { window.unityGame.SendMessage(name, "ready"); } catch(e) {}
@@ -346,15 +325,15 @@
       init: function() { return Promise.resolve(); },
       gameplayStart: function() {
         console.log('[PokiSDK] gameplayStart fired');
-        isUnityReady = true;
-        checkReady();
+        isGameSceneLoaded = true;
+        checkReadyToReveal();
       },
       gameplayStop: function() {},
       gameLoadingStart: function() {},
       gameLoadingFinished: function() {
         console.log('[PokiSDK] gameLoadingFinished fired');
-        isUnityReady = true;
-        checkReady();
+        isGameSceneLoaded = true;
+        checkReadyToReveal();
       },
       commercialBreak: window.commercialBreak,
       rewardedBreak: window.rewardedBreak,
@@ -369,49 +348,29 @@
     };
   </script>
 
-  <!-- Background Music Controller (100% Volume) -->
+  <!-- Background Music Controller (Plays immediately on any touch/click, 100% volume) -->
   <script>
     const bgm = document.getElementById('bgm-player');
-    const soundToggle = document.getElementById('sound-toggle');
-    let isMuted = false;
-
     if (bgm) {
       bgm.volume = 1.0;
     }
 
-    function startBgm() {
-      if (bgm && !isMuted) {
-        bgm.volume = 1.0;
-        bgm.play().catch(e => {
-          console.log('[BGM] Waiting for first touch gesture');
-        });
-      }
-    }
-
-    soundToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (!bgm) return;
-      isMuted = !isMuted;
-      if (isMuted) {
-        bgm.pause();
-        soundToggle.textContent = '🔇';
-      } else {
-        bgm.volume = 1.0;
-        bgm.play().catch(e => {});
-        soundToggle.textContent = '🔊';
-      }
-    });
-
-    function userUnlockAudio() {
-      if (bgm && !isMuted) {
+    function playBgmAudio() {
+      if (bgm) {
         bgm.volume = 1.0;
         if (bgm.paused) {
-          bgm.play().catch(e => {});
+          bgm.play().catch(e => {
+            console.log('[BGM] Waiting for player tap/gesture to start audio');
+          });
         }
       }
     }
-    window.addEventListener('pointerdown', userUnlockAudio, { once: true });
-    window.addEventListener('keydown', userUnlockAudio, { once: true });
+
+    // Start playing background music on first tap anywhere (even on loading screen)
+    window.addEventListener('pointerdown', playBgmAudio, { passive: true });
+    window.addEventListener('touchstart', playBgmAudio, { passive: true });
+    window.addEventListener('keydown', playBgmAudio, { passive: true });
+    window.addEventListener('click', playBgmAudio, { passive: true });
   </script>
 
   <!-- Unity WebGL Loader -->
@@ -421,6 +380,7 @@
     const canvas = document.querySelector("#unity-canvas");
     const capsuleBar = document.getElementById("capsule-bar");
     const capsulePercent = document.getElementById("capsule-percent");
+    const statusText = document.getElementById("loader-status-text");
     const tipText = document.getElementById("tip-text");
 
     // Dynamic Mobile/PC detection check
@@ -451,23 +411,28 @@
     const TOTAL_LOAD_MS = 7000;
     const startTime = performance.now();
 
-    function updateLoadingProgress() {
+    function updateProgress() {
+      if (isGameRevealed) return;
+
       const elapsed = performance.now() - startTime;
-      const progress = Math.min(100, Math.floor((elapsed / TOTAL_LOAD_MS) * 100));
+      let progress = Math.min(99, Math.floor((elapsed / TOTAL_LOAD_MS) * 100));
 
       if (capsuleBar) capsuleBar.style.width = progress + "%";
       if (capsulePercent) capsulePercent.textContent = progress + "%";
 
       if (elapsed >= TOTAL_LOAD_MS) {
-        isMinTimeElapsed = true;
-        checkReady();
-      } else {
-        requestAnimationFrame(updateLoadingProgress);
+        isMinTimerDone = true;
+        if (statusText) statusText.textContent = "Starting game...";
+        checkReadyToReveal();
+      }
+
+      if (!isGameRevealed) {
+        requestAnimationFrame(updateProgress);
       }
     }
-    requestAnimationFrame(updateLoadingProgress);
+    requestAnimationFrame(updateProgress);
 
-    // Performance Optimization
+    // Dynamic Mobile Performance Optimization
     const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 600;
     let dynamicDPR = Math.min(window.devicePixelRatio || 1, isMobileDevice ? 1.5 : 2.0);
 
@@ -483,34 +448,35 @@
       devicePixelRatio: dynamicDPR
     };
 
-    // CRITICAL FIX: Pass mandatory 3rd argument (progress callback) so loader.js never throws TypeError
     createUnityInstance(canvas, config, (progress) => {
-      // Unity download progress
-      if (progress >= 1.0) {
-        // When Unity WebAssembly is compiled, mark engine as ready after brief splash duration
-        setTimeout(() => {
-          isUnityReady = true;
-          checkReady();
-        }, 2200);
-      }
+      // Mandatory Unity progress handler
     }).then((unityInstance) => {
       window.unityInstance = unityInstance;
       window.unityGame = unityInstance;
 
+      // When Unity engine starts, give level0 StartupManager 2.8s to load Game.unity
       setTimeout(() => {
-        isUnityReady = true;
-        checkReady();
-      }, 2500);
+        isGameSceneLoaded = true;
+        checkReadyToReveal();
+      }, 2800);
 
       if (window.pokiBridge) {
         try { window.unityGame.SendMessage(window.pokiBridge, "ready"); } catch(e) {}
       }
-    }).catch((message) => {
-      console.error("Unity Load Error:", message);
-      // Guarantee game reveals even on error
-      isUnityReady = true;
-      revealGame();
+    }).catch((err) => {
+      console.error("Unity Load Error:", err);
+      // Guarantee reveal on error
+      isGameSceneLoaded = true;
+      isMinTimerDone = true;
+      revealGameNow();
     });
+
+    // Fallback safety: under no circumstances can the screen stay on loading longer than 11s
+    setTimeout(() => {
+      isGameSceneLoaded = true;
+      isMinTimerDone = true;
+      revealGameNow();
+    }, 11000);
 
     // PC Keyboard Steer Helper: Seamless A/D & Arrow Left/Right to simulated drag
     let isKeySteering = false;
