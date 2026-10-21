@@ -43,19 +43,6 @@
       outline: none;
     }
 
-    /* Sleek minimal top load line - no logo, no big box */
-    #top-loader {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 4px;
-      width: 0%;
-      background: linear-gradient(90deg, #00d2ff, #0078ff);
-      z-index: 100;
-      transition: width 0.15s ease, opacity 0.4s ease;
-      box-shadow: 0 0 10px #00d2ff;
-    }
-
     /* PC Desktop View: Portrait frame centered with subtle controls guide */
     @media (min-width: 600px) and (min-height: 500px) and (hover: hover) {
       body, html {
@@ -112,7 +99,6 @@
 </head>
 <body>
   <div id="game-container">
-    <div id="top-loader"></div>
     <canvas id="unity-canvas" tabindex="-1"></canvas>
   </div>
 
@@ -193,7 +179,6 @@
 
   <script>
     const canvas = document.querySelector("#unity-canvas");
-    const topLoader = document.querySelector("#top-loader");
 
     // Dynamic Mobile/PC detection check
     function checkDeviceView() {
@@ -219,18 +204,9 @@
       devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
     };
 
-    createUnityInstance(canvas, config, (progress) => {
-      const pct = Math.round(progress * 100);
-      topLoader.style.width = pct + "%";
-    }).then((unityInstance) => {
+    createUnityInstance(canvas, config).then((unityInstance) => {
       window.unityInstance = unityInstance;
       window.unityGame = unityInstance;
-
-      // Hide top progress bar smoothly
-      topLoader.style.opacity = "0";
-      setTimeout(() => {
-        topLoader.style.display = "none";
-      }, 400);
 
       if (window.pokiBridge) {
         try {
