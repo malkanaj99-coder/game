@@ -125,7 +125,7 @@
       background: linear-gradient(90deg, #00e676 0%, #00c853 100%);
       border-radius: 20px;
       box-shadow: 0 0 20px rgba(0, 230, 118, 0.95);
-      transition: width 0.1s linear;
+      transition: width 0.2s ease-out;
     }
 
     .capsule-percent {
@@ -214,7 +214,7 @@
   <div id="game-container">
     <canvas id="unity-canvas" tabindex="-1"></canvas>
 
-    <!-- 4K High-Res Thumbnail Cover + 7-Second Capsule Loading Screen -->
+    <!-- 4K High-Res Thumbnail Cover + Capsule Loading Screen -->
     <div id="game-splash-overlay">
       <img src="thumbnail.jpg" alt="Mob Control" id="splash-bg-img">
       <div class="splash-vignette"></div>
@@ -241,7 +241,7 @@
     </div>
   </div>
 
-  <!-- Background Music Player (amin.mp3 in continuous loop, 100% volume, NO mute button) -->
+  <!-- Background Music Player (amin.mp3 in continuous loop, 100% full volume, NO mute button) -->
   <audio id="bgm-player" src="amin.mp3" loop preload="auto"></audio>
 
   <!-- Complete Zero-Ad Poki SDK & PokiBridge Mock -->
@@ -250,52 +250,50 @@
     window.pokiAdBlock = false;
     window.pokiBridge = null;
 
-    let isGameSceneLoaded = false;
-    let isMinTimerDone = false;
-    let isGameRevealed = false;
+    let isGameSceneActive = false;
+    let isRevealed = false;
 
+    // Guaranteed Direct Reveal: Only called when the real 3D runner scene is active
     function revealGameNow() {
-      if (isGameRevealed) return;
-      isGameRevealed = true;
+      if (isRevealed) return;
+      isRevealed = true;
 
       const canvas = document.querySelector("#unity-canvas");
       const overlay = document.querySelector("#game-splash-overlay");
       const bar = document.getElementById("capsule-bar");
       const pct = document.getElementById("capsule-percent");
+      const statusText = document.getElementById("loader-status-text");
 
       if (bar) bar.style.width = "100%";
       if (pct) pct.textContent = "100%";
+      if (statusText) statusText.textContent = "Ready!";
 
-      console.log('[Runner] Revealing authentic 3D runner directly on gameplay scene!');
+      console.log('[Runner] Direct 3D game reveal! Zero black screen, zero logo.');
 
-      // Smoothly fade in canvas and fade out splash overlay
-      if (canvas) {
-        canvas.style.opacity = "1";
-        canvas.style.pointerEvents = "auto";
-      }
-
-      if (overlay) {
-        overlay.style.opacity = "0";
-        setTimeout(() => {
-          overlay.style.display = "none";
-        }, 550);
-      }
-
-      playBgmAudio();
-    }
-
-    function checkReadyToReveal() {
-      if (isGameSceneLoaded && isMinTimerDone) {
-        revealGameNow();
-      }
+      // Wait 2 animation frames so the 3D scene is painted on canvas before revealing
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (canvas) {
+            canvas.style.opacity = "1";
+            canvas.style.pointerEvents = "auto";
+          }
+          if (overlay) {
+            overlay.style.opacity = "0";
+            setTimeout(() => {
+              overlay.style.display = "none";
+            }, 550);
+          }
+          playBgmAudio();
+        });
+      });
     }
 
     // PokiBridge callback: GameObject in Game.unity awakens and connects
     window.initPokiBridge = function(name) {
-      console.log('[PokiBridge] Game scene loaded and ready! Connected to:', name);
+      console.log('[PokiBridge] Game scene active! Connecting to:', name);
       window.pokiBridge = name;
-      isGameSceneLoaded = true;
-      checkReadyToReveal();
+      isGameSceneActive = true;
+      revealGameNow();
 
       function notifyReady() {
         if (window.unityGame) {
@@ -325,15 +323,15 @@
       init: function() { return Promise.resolve(); },
       gameplayStart: function() {
         console.log('[PokiSDK] gameplayStart fired');
-        isGameSceneLoaded = true;
-        checkReadyToReveal();
+        isGameSceneActive = true;
+        revealGameNow();
       },
       gameplayStop: function() {},
       gameLoadingStart: function() {},
       gameLoadingFinished: function() {
         console.log('[PokiSDK] gameLoadingFinished fired');
-        isGameSceneLoaded = true;
-        checkReadyToReveal();
+        isGameSceneActive = true;
+        revealGameNow();
       },
       commercialBreak: window.commercialBreak,
       rewardedBreak: window.rewardedBreak,
@@ -348,7 +346,7 @@
     };
   </script>
 
-  <!-- Background Music Controller (Plays immediately on any touch/click, 100% volume) -->
+  <!-- Background Music Controller (100% Volume, Immediate User Unlock) -->
   <script>
     const bgm = document.getElementById('bgm-player');
     if (bgm) {
@@ -359,14 +357,12 @@
       if (bgm) {
         bgm.volume = 1.0;
         if (bgm.paused) {
-          bgm.play().catch(e => {
-            console.log('[BGM] Waiting for player tap/gesture to start audio');
-          });
+          bgm.play().catch(e => {});
         }
       }
     }
 
-    // Start playing background music on first tap anywhere (even on loading screen)
+    // Play music immediately on first touch anywhere (even on loading screen)
     window.addEventListener('pointerdown', playBgmAudio, { passive: true });
     window.addEventListener('touchstart', playBgmAudio, { passive: true });
     window.addEventListener('keydown', playBgmAudio, { passive: true });
@@ -407,30 +403,25 @@
       if (tipText) tipText.textContent = tips[tipIdx];
     }, 2400);
 
-    // EXACT 7-SECOND PROGRESS COUNTER
-    const TOTAL_LOAD_MS = 7000;
-    const startTime = performance.now();
+    // Smooth Progress Interpolator synced to real download & engine initialization
+    let targetPercent = 0;
+    let currentPercent = 0;
 
-    function updateProgress() {
-      if (isGameRevealed) return;
+    function animateBar() {
+      if (isRevealed) return;
 
-      const elapsed = performance.now() - startTime;
-      let progress = Math.min(99, Math.floor((elapsed / TOTAL_LOAD_MS) * 100));
+      if (currentPercent < targetPercent) {
+        currentPercent += Math.max(0.4, (targetPercent - currentPercent) * 0.1);
+        if (currentPercent > targetPercent) currentPercent = targetPercent;
 
-      if (capsuleBar) capsuleBar.style.width = progress + "%";
-      if (capsulePercent) capsulePercent.textContent = progress + "%";
-
-      if (elapsed >= TOTAL_LOAD_MS) {
-        isMinTimerDone = true;
-        if (statusText) statusText.textContent = "Starting game...";
-        checkReadyToReveal();
+        const rounded = Math.floor(currentPercent);
+        if (capsuleBar) capsuleBar.style.width = rounded + "%";
+        if (capsulePercent) capsulePercent.textContent = rounded + "%";
       }
 
-      if (!isGameRevealed) {
-        requestAnimationFrame(updateProgress);
-      }
+      requestAnimationFrame(animateBar);
     }
-    requestAnimationFrame(updateProgress);
+    requestAnimationFrame(animateBar);
 
     // Dynamic Mobile Performance Optimization
     const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 600;
@@ -448,17 +439,40 @@
       devicePixelRatio: dynamicDPR
     };
 
+    // REAL progress callback from Unity loader
     createUnityInstance(canvas, config, (progress) => {
-      // Mandatory Unity progress handler
+      // Scale download progress to 0% - 90%
+      const p = Math.min(90, Math.round(progress * 90));
+      if (p > targetPercent) {
+        targetPercent = p;
+      }
+      if (progress >= 1.0) {
+        targetPercent = 95;
+        if (statusText) statusText.textContent = "Starting runner...";
+      }
     }).then((unityInstance) => {
       window.unityInstance = unityInstance;
       window.unityGame = unityInstance;
 
-      // When Unity engine starts, give level0 StartupManager 2.8s to load Game.unity
+      targetPercent = 99;
+      if (statusText) statusText.textContent = "Starting runner...";
+
+      // When createUnityInstance resolves, Unity initializes scenes
+      // Check every 100ms if PokiBridge / Game.unity has awakened:
+      const checkSceneInterval = setInterval(() => {
+        if (isGameSceneActive || window.pokiBridge) {
+          clearInterval(checkSceneInterval);
+          targetPercent = 100;
+          revealGameNow();
+        }
+      }, 100);
+
+      // Fallback: maximum 4.5 seconds after engine starts to reveal
       setTimeout(() => {
-        isGameSceneLoaded = true;
-        checkReadyToReveal();
-      }, 2800);
+        clearInterval(checkSceneInterval);
+        targetPercent = 100;
+        revealGameNow();
+      }, 4500);
 
       if (window.pokiBridge) {
         try { window.unityGame.SendMessage(window.pokiBridge, "ready"); } catch(e) {}
@@ -466,17 +480,9 @@
     }).catch((err) => {
       console.error("Unity Load Error:", err);
       // Guarantee reveal on error
-      isGameSceneLoaded = true;
-      isMinTimerDone = true;
+      targetPercent = 100;
       revealGameNow();
     });
-
-    // Fallback safety: under no circumstances can the screen stay on loading longer than 11s
-    setTimeout(() => {
-      isGameSceneLoaded = true;
-      isMinTimerDone = true;
-      revealGameNow();
-    }, 11000);
 
     // PC Keyboard Steer Helper: Seamless A/D & Arrow Left/Right to simulated drag
     let isKeySteering = false;
