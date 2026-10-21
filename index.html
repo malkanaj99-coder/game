@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
+  <title>Count Control Legends</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0c0d14;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    #unity-canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+      outline: none;
+    }
+
+    /* Sleek minimal top load line - no logo, no big box */
+    #top-loader {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 4px;
+      width: 0%;
+      background: linear-gradient(90deg, #00d2ff, #0078ff);
+      z-index: 100;
+      transition: width 0.15s ease, opacity 0.4s ease;
+      box-shadow: 0 0 10px #00d2ff;
+    }
+
+    /* PC Desktop View: Portrait frame centered with subtle controls guide */
+    @media (min-width: 600px) and (min-height: 500px) and (hover: hover) {
+      body, html {
+        background: radial-gradient(circle at center, #181a29 0%, #0a0b12 100%);
+      }
+      #game-container {
+        max-width: 480px;
+        max-height: 94vh;
+        height: 100%;
+        border-radius: 16px;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.08);
+      }
+      .pc-controls-guide {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 10px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+      }
+      .pc-key {
+        display: inline-block;
+        padding: 2px 7px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 4px;
+        color: #fff;
+        font-family: monospace;
+        font-size: 12px;
+      }
+    }
+
+    /* Mobile View: 100% Fullscreen, strictly NO PC buttons or hints */
+    @media (max-width: 599px), (max-height: 499px), (pointer: coarse) {
+      body, html {
+        background: #000;
+      }
+      #game-container {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
+      .pc-controls-guide {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="top-loader"></div>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+  </div>
+
+  <!-- PC Controls Guide (Only visible on PC/Desktop, hidden on mobile) -->
+  <div class="pc-controls-guide" id="pc-guide">
+    <span>⌨️ <span class="pc-key">A</span> / <span class="pc-key">D</span> or <span class="pc-key">◄</span> / <span class="pc-key">►</span> Steer</span>
+    <span>•</span>
+    <span>🖱️ Drag to Move</span>
+    <span>•</span>
+    <span><span class="pc-key">Space</span> Tap to Start</span>
+  </div>
+
+  <!-- Complete Zero-Ad Poki SDK & PokiBridge Mock -->
+  <script>
+    window.pokiReady = true;
+    window.pokiAdBlock = false;
+    window.pokiBridge = null;
+
+    window.initPokiBridge = function(name) {
+      console.log('[PokiBridge] initPokiBridge called for:', name);
+      window.pokiBridge = name;
+      function notifyReady() {
+        if (window.unityGame) {
+          console.log('[PokiBridge] Notifying ready to:', name);
+          try {
+            window.unityGame.SendMessage(name, "ready");
+          } catch(e) {
+            console.error('[PokiBridge] Error sending ready:', e);
+          }
+        } else {
+          setTimeout(notifyReady, 50);
+        }
+      }
+      notifyReady();
+    };
+
+    window.commercialBreak = function() {
+      console.log('[PokiBridge] commercialBreak() -> immediately resolving');
+      if (window.unityGame && window.pokiBridge) {
+        try {
+          window.unityGame.SendMessage(window.pokiBridge, "commercialBreakCompleted");
+        } catch(e) {}
+      }
+      return Promise.resolve();
+    };
+
+    window.rewardedBreak = function(options) {
+      console.log('[PokiBridge] rewardedBreak() -> granting reward instantly');
+      if (window.unityGame && window.pokiBridge) {
+        try {
+          window.unityGame.SendMessage(window.pokiBridge, "rewardedBreakCompleted", "true");
+        } catch(e) {}
+      }
+      return Promise.resolve(true);
+    };
+
+    window.PokiSDK = {
+      init: function() { return Promise.resolve(); },
+      gameplayStart: function() { console.log('[PokiSDK] gameplayStart'); },
+      gameplayStop: function() { console.log('[PokiSDK] gameplayStop'); },
+      gameLoadingStart: function() {},
+      gameLoadingFinished: function() {},
+      commercialBreak: window.commercialBreak,
+      rewardedBreak: window.rewardedBreak,
+      displayAd: function() {},
+      destroyAd: function() {},
+      getLanguage: function() { return "en"; },
+      getURLParam: function() { return ""; },
+      isAdBlocked: function() { return false; },
+      logError: function(err) { console.warn('[PokiSDK Error Log]', err); },
+      measure: function() {},
+      customEvent: function() {}
+    };
+  </script>
+
+  <!-- Unity WebGL Loader -->
+  <script src="Build/c7cea366ea8eaab59722a8d24073643f.loader.js"></script>
+
+  <script>
+    const canvas = document.querySelector("#unity-canvas");
+    const topLoader = document.querySelector("#top-loader");
+
+    // Dynamic Mobile/PC detection check
+    function checkDeviceView() {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth < 600;
+      const pcGuide = document.getElementById("pc-guide");
+      if (pcGuide) {
+        pcGuide.style.display = isMobile ? "none" : "";
+      }
+    }
+    window.addEventListener('resize', checkDeviceView);
+    checkDeviceView();
+
+    const buildUrl = "Build";
+    try { indexedDB.deleteDatabase("UnityCache"); } catch(e) {}
+    const config = {
+      dataUrl: buildUrl + "/180b03074745078a7fe292b2c22f6060.data.unityweb",
+      frameworkUrl: buildUrl + "/2320a17ab13f3e61f4a62a2cc0382528.framework.js.unityweb",
+      codeUrl: buildUrl + "/f1c87ec2ef0c4ed9b3c34bb439b0c5de.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "Jungle Tavern",
+      productName: "Count Control Legends",
+      productVersion: "1.0.0",
+      devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
+    };
+
+    createUnityInstance(canvas, config, (progress) => {
+      const pct = Math.round(progress * 100);
+      topLoader.style.width = pct + "%";
+    }).then((unityInstance) => {
+      window.unityInstance = unityInstance;
+      window.unityGame = unityInstance;
+
+      // Hide top progress bar smoothly
+      topLoader.style.opacity = "0";
+      setTimeout(() => {
+        topLoader.style.display = "none";
+      }, 400);
+
+      if (window.pokiBridge) {
+        try {
+          window.unityGame.SendMessage(window.pokiBridge, "ready");
+        } catch(e) {}
+      }
+      console.log("Count Control Legends loaded and running directly!");
+    }).catch((message) => {
+      console.error("Unity Load Error:", message);
+    });
+
+    // PC Keyboard Steer Helper: Seamless A/D & Arrow Left/Right to simulated drag
+    let isKeySteering = false;
+    let keySteerOffset = 0;
+    const activeKeys = {};
+
+    window.addEventListener('keydown', (e) => {
+      activeKeys[e.code] = true;
+      if (e.code === 'KeyA' || e.code === 'ArrowLeft' || e.code === 'KeyD' || e.code === 'ArrowRight') {
+        if (!isKeySteering) {
+          isKeySteering = true;
+          startKeyDrag();
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      delete activeKeys[e.code];
+      if (!activeKeys['KeyA'] && !activeKeys['ArrowLeft'] && !activeKeys['KeyD'] && !activeKeys['ArrowRight']) {
+        isKeySteering = false;
+        stopKeyDrag();
+      }
+    });
+
+    let dragInterval = null;
+    let curX = 0;
+    let curY = 0;
+
+    function startKeyDrag() {
+      const rect = canvas.getBoundingClientRect();
+      curX = rect.left + rect.width / 2;
+      curY = rect.top + rect.height * 0.7;
+
+      canvas.dispatchEvent(new PointerEvent('pointerdown', {
+        clientX: curX,
+        clientY: curY,
+        bubbles: true,
+        pointerId: 1
+      }));
+
+      if (dragInterval) clearInterval(dragInterval);
+      dragInterval = setInterval(() => {
+        if (!isKeySteering) {
+          clearInterval(dragInterval);
+          return;
+        }
+        let dir = 0;
+        if (activeKeys['KeyA'] || activeKeys['ArrowLeft']) dir -= 1;
+        if (activeKeys['KeyD'] || activeKeys['ArrowRight']) dir += 1;
+
+        const rect = canvas.getBoundingClientRect();
+        curX += dir * 18;
+        curX = Math.max(rect.left + 20, Math.min(rect.right - 20, curX));
+
+        canvas.dispatchEvent(new PointerEvent('pointermove', {
+          clientX: curX,
+          clientY: curY,
+          bubbles: true,
+          pointerId: 1
+        }));
+      }, 16);
+    }
+
+    function stopKeyDrag() {
+      if (dragInterval) clearInterval(dragInterval);
+      canvas.dispatchEvent(new PointerEvent('pointerup', {
+        clientX: curX,
+        clientY: curY,
+        bubbles: true,
+        pointerId: 1
+      }));
+    }
+  </script>
+</body>
+</html>
